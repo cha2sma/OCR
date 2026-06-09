@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="700" viewBox="0 0 520 700">
+  <!-- Relay body -->
+  <rect width="520" height="700" rx="8" ry="8" fill="#3a3a3a"/>
+  <rect x="8" y="8" width="504" height="684" rx="6" ry="6" fill="#2e2e2e" stroke="#555" stroke-width="1"/>
+
+  <!-- Top label area -->
+  <rect x="20" y="15" width="480" height="80" rx="4" fill="#222"/>
+  <text x="260" y="45" text-anchor="middle" font-family="Arial" font-size="18" font-weight="bold" fill="#c8e6c9">GD31-AB17</text>
+  <text x="260" y="65" text-anchor="middle" font-family="Arial" font-size="11" fill="#aaa">OVERCURRENT RELAY</text>
+  <text x="260" y="82" text-anchor="middle" font-family="Arial" font-size="10" fill="#888">GERSYS</text>
+
+  <!-- LCD window frame -->
+  <rect x="144" y="104" width="235" height="86" rx="4" fill="#111" stroke="#444" stroke-width="1.5"/>
+  <!-- LCD backlight simulation -->
+  <rect x="148" y="108" width="227" height="78" rx="2" fill="#0d1f0d"/>
+  <!-- LCD placeholder text -->
+  <text x="152" y="126" font-family="Courier New" font-size="10" fill="#7fff7f" opacity="0.8">   GD31-AB17</text>
+  <text x="152" y="140" font-family="Courier New" font-size="10" fill="#7fff7f" opacity="0.8">  OCR SIMULATOR</text>
+  <text x="152" y="154" font-family="Courier New" font-size="10" fill="#7fff7f" opacity="0.8"> STATUS : NORMAL</text>
+  <text x="152" y="168" font-family="Courier New" font-size="10" fill="#7fff7f" opacity="0.8"> PRESS DIS/SET</text>
+
+  <!-- LED section label -->
+  <rect x="20" y="205" width="480" height="230" rx="3" fill="#282828" stroke="#404040" stroke-width="1"/>
+  <text x="30" y="225" font-family="Arial" font-size="9" fill="#666">STATUS LEDS</text>
+
+  <!-- PWR LED -->
+  <circle cx="91" cy="306" r="6" fill="#003311" stroke="#222" stroke-width="1"/>
+  <text x="105" y="310" font-family="Arial" font-size="9" fill="#888">PWR</text>
+
+  <!-- RUN LED -->
+  <circle cx="91" cy="356" r="6" fill="#003311" stroke="#222" stroke-width="1"/>
+  <text x="105" y="360" font-family="Arial" font-size="9" fill="#888">RUN</text>
+
+  <!-- ERR LED -->
+  <circle cx="91" cy="405" r="6" fill="#330000" stroke="#222" stroke-width="1"/>
+  <text x="105" y="409" font-family="Arial" font-size="9" fill="#888">ERR</text>
+
+  <!-- PICKUP section -->
+  <text x="165" y="318" font-family="Arial" font-size="8" fill="#666">PICKUP</text>
+  <circle cx="190" cy="337" r="5" fill="#332200" stroke="#222" stroke-width="1"/>
+  <text x="200" y="341" font-family="Arial" font-size="7" fill="#777">50/51N</text>
+  <circle cx="190" cy="387" r="5" fill="#332200" stroke="#222" stroke-width="1"/>
+  <text x="200" y="391" font-family="Arial" font-size="7" fill="#777">50B/46</text>
+
+  <!-- TRIP INST section -->
+  <text x="250" y="302" font-family="Arial" font-size="8" fill="#666">INST</text>
+  <circle cx="277" cy="311" r="5" fill="#330000" stroke="#222" stroke-width="1"/>
+  <text x="285" y="315" font-family="Arial" font-size="7" fill="#777">A</text>
+  <circle cx="277" cy="338" r="5" fill="#330000" stroke="#222" stroke-width="1"/>
+  <text x="285" y="342" font-family="Arial" font-size="7" fill="#777">B</text>
+  <circle cx="277" cy="365" r="5" fill="#330000" stroke="#222" stroke-width="1"/>
+  <text x="285" y="369" font-family="Arial" font-size="7" fill="#777">C</text>
+  <circle cx="277" cy="392" r="5" fill="#330000" stroke="#222" stroke-width="1"/>
+  <text x="285" y="396" font-family="Arial" font-size="7" fill="#777">N</text>
+
+  <!-- TRIP TIMED section -->
+  <text x="300" y="302" font-family="Arial" font-size="8" fill="#666">TIMED</text>
+  <circle cx="326" cy="311" r="5" fill="#330000" stroke="#222" stroke-width="1"/>
+  <text x="334" y="315" font-family="Arial" font-size="7" fill="#777">A</text>
+  <circle cx="326" cy="338" r="5" fill="#330000" stroke="#222" stroke-width="1"/>
+  <text x="334" y="342" font-family="Arial" font-size="7" fill="#777">B</text>
+  <circle cx="326" cy="365" r="5" fill="#330000" stroke="#222" stroke-width="1"/>
+  <text x="334" y="369" font-family="Arial" font-size="7" fill="#777">C</text>
+  <circle cx="326" cy="392" r="5" fill="#330000" stroke="#222" stroke-width="1"/>
+  <text x="334" y="396" font-family="Arial" font-size="7" fill="#777">N</text>
+
+  <!-- TRIP 50B / UBOCR -->
+  <text x="352" y="302" font-family="Arial" font-size="8" fill="#666">OTHER</text>
+  <circle cx="377" cy="310" r="5" fill="#330000" stroke="#222" stroke-width="1"/>
+  <text x="385" y="314" font-family="Arial" font-size="7" fill="#777">50B</text>
+  <circle cx="377" cy="392" r="5" fill="#332200" stroke="#222" stroke-width="1"/>
+  <text x="385" y="396" font-family="Arial" font-size="7" fill="#777">UBOCR</text>
+
+  <!-- Button section -->
+  <rect x="20" y="415" width="480" height="190" rx="3" fill="#252525" stroke="#404040" stroke-width="1"/>
+  <text x="30" y="433" font-family="Arial" font-size="9" fill="#666">KEYPAD</text>
+
+  <!-- RESET button (large) -->
+  <rect x="334" y="424" width="56" height="58" rx="6" fill="#1a1a1a" stroke="#555" stroke-width="1.5"/>
+  <text x="362" y="458" text-anchor="middle" font-family="Arial" font-size="10" font-weight="bold" fill="#aaa">RESET</text>
+
+  <!-- DIS button -->
+  <rect x="103" y="442" width="42" height="39" rx="5" fill="#1a1a1a" stroke="#555" stroke-width="1.5"/>
+  <text x="124" y="466" text-anchor="middle" font-family="Arial" font-size="10" fill="#aaa">DIS</text>
+
+  <!-- SET button -->
+  <rect x="103" y="515" width="42" height="39" rx="5" fill="#1a1a1a" stroke="#555" stroke-width="1.5"/>
+  <text x="124" y="539" text-anchor="middle" font-family="Arial" font-size="10" fill="#aaa">SET</text>
+
+  <!-- UP button -->
+  <rect x="232" y="442" width="44" height="38" rx="5" fill="#1a1a1a" stroke="#555" stroke-width="1.5"/>
+  <text x="254" y="466" text-anchor="middle" font-family="Arial" font-size="10" fill="#aaa">▲</text>
+
+  <!-- DOWN button -->
+  <rect x="232" y="544" width="44" height="38" rx="5" fill="#1a1a1a" stroke="#555" stroke-width="1.5"/>
+  <text x="254" y="568" text-anchor="middle" font-family="Arial" font-size="10" fill="#aaa">▼</text>
+
+  <!-- LEFT button -->
+  <rect x="183" y="493" width="43" height="39" rx="5" fill="#1a1a1a" stroke="#555" stroke-width="1.5"/>
+  <text x="204" y="517" text-anchor="middle" font-family="Arial" font-size="10" fill="#aaa">◄</text>
+
+  <!-- RIGHT button -->
+  <rect x="285" y="493" width="43" height="39" rx="5" fill="#1a1a1a" stroke="#555" stroke-width="1.5"/>
+  <text x="306" y="517" text-anchor="middle" font-family="Arial" font-size="10" fill="#aaa">►</text>
+
+  <!-- ENT button -->
+  <rect x="370" y="515" width="43" height="39" rx="5" fill="#1a1a1a" stroke="#555" stroke-width="1.5"/>
+  <text x="391" y="539" text-anchor="middle" font-family="Arial" font-size="9" fill="#aaa">ENT</text>
+
+  <!-- RS232C Connector area -->
+  <rect x="20" y="615" width="140" height="55" rx="3" fill="#1e1e1e" stroke="#444" stroke-width="1"/>
+  <text x="90" y="635" text-anchor="middle" font-family="Arial" font-size="8" fill="#555">RS232C</text>
+  <!-- Connector pins -->
+  <rect x="30" y="640" width="120" height="20" rx="2" fill="#181818" stroke="#555" stroke-width="1"/>
+  <circle cx="45" cy="650" r="2" fill="#555"/>
+  <circle cx="60" cy="650" r="2" fill="#555"/>
+  <circle cx="75" cy="650" r="2" fill="#555"/>
+  <circle cx="90" cy="650" r="2" fill="#555"/>
+  <circle cx="105" cy="650" r="2" fill="#555"/>
+  <circle cx="120" cy="650" r="2" fill="#555"/>
+  <circle cx="135" cy="650" r="2" fill="#555"/>
+
+  <!-- Bottom label -->
+  <text x="260" y="688" text-anchor="middle" font-family="Arial" font-size="9" fill="#555">GD31-AB17 · OVERCURRENT RELAY SIMULATOR · PLACEHOLDER IMAGE</text>
+</svg>

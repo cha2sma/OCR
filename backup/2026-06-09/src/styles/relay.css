@@ -1,0 +1,281 @@
+/* =========================================================
+   GD31-AB17 Relay Simulator - Main Stylesheet
+   ========================================================= */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #1e1e1e;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: #d0d0d0;
+  min-height: 100vh;
+}
+
+/* ─── Simulator root layout ──────────────────────────────── */
+.simulator-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 16px;
+  gap: 16px;
+}
+
+.simulator-header {
+  text-align: center;
+  padding: 8px 0 4px;
+}
+
+.simulator-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #c8e6c9;
+  letter-spacing: 1px;
+}
+
+.simulator-subtitle {
+  display: block;
+  font-size: 11px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.simulator-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.simulator-panel-area {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.simulator-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 280px;
+  max-width: 340px;
+  flex: 1;
+}
+
+/* ─── Control Panel ──────────────────────────────────────── */
+.control-panel {
+  background-color: #252525;
+  border: 1px solid #383838;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.cp-title {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #aac8aa;
+  border-bottom: 1px solid #383838;
+  padding-bottom: 8px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.cp-section {
+  margin-bottom: 14px;
+}
+
+.cp-section:last-child {
+  margin-bottom: 0;
+}
+
+.cp-section-title {
+  font-size: 11px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.cp-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 5px;
+}
+
+.cp-label {
+  font-size: 11px;
+  color: #aaa;
+  width: 90px;
+  flex-shrink: 0;
+}
+
+.cp-input {
+  flex: 1;
+  min-width: 0;
+  background: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #d0d0d0;
+  padding: 3px 6px;
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.cp-input::-webkit-inner-spin-button,
+.cp-input::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+.cp-input:focus {
+  border-color: #4caf50;
+  box-shadow: 0 0 0 2px rgba(76,175,80,0.2);
+}
+
+.cp-unit {
+  font-size: 11px;
+  color: #666;
+  width: 14px;
+  flex-shrink: 0;
+}
+
+.cp-section-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ─── Buttons ─────────────────────────────────────────────── */
+.cp-btn {
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.4px;
+  transition: background-color 0.15s, transform 0.08s;
+}
+
+.cp-btn:active {
+  transform: scale(0.97);
+}
+
+.cp-btn-apply {
+  background-color: #2e5e2e;
+  color: #c8e6c9;
+  margin-top: 6px;
+}
+
+.cp-btn-apply:hover {
+  background-color: #3a7a3a;
+}
+
+.cp-btn-fault {
+  background-color: #7a2020;
+  color: #ffcdd2;
+}
+
+.cp-btn-fault:hover {
+  background-color: #9e2828;
+}
+
+.cp-btn-clear {
+  background-color: #1a4a6a;
+  color: #bbdefb;
+}
+
+.cp-btn-clear:hover {
+  background-color: #215c84;
+}
+
+.cp-btn-debug {
+  background-color: #333;
+  color: #aaa;
+  border: 1px solid #555;
+}
+
+.cp-btn-debug:hover {
+  background-color: #404040;
+}
+
+.cp-btn-debug-on {
+  background-color: #4a4a00;
+  color: #ffee58;
+  border-color: #888800;
+}
+
+.cp-btn-debug-on:hover {
+  background-color: #606000;
+}
+
+/* ─── Event Log ───────────────────────────────────────────── */
+.event-log {
+  background-color: #252525;
+  border: 1px solid #383838;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.event-log-list {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+}
+
+.event-log-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.event-log-list::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.event-log-list::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 3px;
+}
+
+.event-log-entry {
+  display: flex;
+  gap: 8px;
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+
+.event-log-entry:first-child {
+  background-color: rgba(76,175,80,0.1);
+}
+
+.event-log-index {
+  color: #555;
+  flex-shrink: 0;
+}
+
+.event-log-text {
+  color: #9ccc65;
+}
+
+.event-log-empty {
+  color: #555;
+  font-style: italic;
+  font-size: 11px;
+  padding: 4px;
+}
