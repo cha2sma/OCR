@@ -468,11 +468,17 @@ export function handleRelayButton(state: RelayState, button: RelayButton): Relay
 
     if (hasLatch) {
       next = clearFault(next);
-      next = addLog(next, 'Reset executed - latch cleared');
-    } else {
-      next = { ...next, mode: 'DISPLAY', displayPage: 'STATUS' };
-      next = addLog(next, 'Reset executed - status display');
+      next = addLog(next, 'Reset: latch cleared');
     }
+    next = {
+      ...next,
+      mode: 'NORMAL',
+      activeMenuId: null,
+      editingLeaf: false,
+      passwordInput: '0000',
+      passwordCursor: 0,
+    };
+    next = addLog(next, 'Reset: returned to home');
     next = { ...next, lcdLines: generateLcdLines(next) };
     return next;
   }
@@ -498,6 +504,12 @@ export function handleRelayButton(state: RelayState, button: RelayButton): Relay
       const dir = button === 'UP' ? -1 : 1;
       const idx = (DISPLAY_PAGES.indexOf(next.displayPage) + dir + DISPLAY_PAGES.length) % DISPLAY_PAGES.length;
       next = { ...next, displayPage: DISPLAY_PAGES[idx] };
+      next = { ...next, lcdLines: generateLcdLines(next) };
+      return next;
+    }
+    if (button === 'LEFT') {
+      next = { ...next, mode: 'NORMAL' };
+      next = addLog(next, 'Back to home');
       next = { ...next, lcdLines: generateLcdLines(next) };
       return next;
     }

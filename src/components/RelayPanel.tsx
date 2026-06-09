@@ -9,6 +9,7 @@ import relayImage from '../assets/gd31-ab17.svg';
 interface RelayPanelProps {
   state: RelayState;
   onButtonPress: (button: RelayButton) => void;
+  lastPressTime: number;
 }
 
 const LED_CONFIG: { key: keyof RelayState['leds']; name: string; color: 'green' | 'red' | 'yellow' }[] = [
@@ -31,7 +32,7 @@ const LED_CONFIG: { key: keyof RelayState['leds']; name: string; color: 'green' 
 
 const BUTTON_KEYS: RelayButton[] = ['DIS', 'SET', 'UP', 'DOWN', 'LEFT', 'RIGHT', 'ENT', 'RESET'];
 
-const RelayPanel: React.FC<RelayPanelProps> = ({ state, onButtonPress }) => {
+const RelayPanel: React.FC<RelayPanelProps> = ({ state, onButtonPress, lastPressTime }) => {
   const { panelWidth, lcd, buttons, leds } = relayLayout;
   const { lcdLines, leds: ledState, debugOverlay } = state;
 
@@ -64,7 +65,7 @@ const RelayPanel: React.FC<RelayPanelProps> = ({ state, onButtonPress }) => {
 
       {/* LCD overlay */}
       <div style={lcdOverlayStyle} data-name="LCD-AREA">
-        <LcdDisplay lines={lcdLines} debug={debugOverlay} />
+        <LcdDisplay lines={lcdLines} debug={debugOverlay} lastPressTime={lastPressTime} />
       </div>
 
       {/* LED overlays */}

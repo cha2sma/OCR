@@ -1,4 +1,4 @@
-import React, { useReducer, useCallback } from 'react';
+import React, { useReducer, useCallback, useState } from 'react';
 import RelayPanel from './RelayPanel';
 import ControlPanel from './ControlPanel';
 import EventLog from './EventLog';
@@ -41,9 +41,11 @@ function relayReducer(state: RelayState, action: Action): RelayState {
 
 const RelaySimulator: React.FC = () => {
   const [state, dispatch] = useReducer(relayReducer, undefined, createInitialRelayState);
+  const [lastPressTime, setLastPressTime] = useState(0);
 
   const handleButton = useCallback((button: RelayButton) => {
     dispatch({ type: 'BUTTON', button });
+    setLastPressTime(Date.now());
   }, []);
 
   const handleCurrentsChange = useCallback((currents: RelayCurrents) => {
@@ -75,7 +77,7 @@ const RelaySimulator: React.FC = () => {
 
       <div className="simulator-body">
         <div className="simulator-panel-area">
-          <RelayPanel state={state} onButtonPress={handleButton} />
+          <RelayPanel state={state} onButtonPress={handleButton} lastPressTime={lastPressTime} />
         </div>
 
         <div className="simulator-right">
