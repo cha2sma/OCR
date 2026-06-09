@@ -27,7 +27,9 @@ const LcdDisplay: React.FC<LcdDisplayProps> = ({ lines, debug = false }) => {
     boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'space-evenly',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '2px',
     overflow: 'hidden',
     boxShadow: debug ? 'none' : 'inset 0 0 8px rgba(0,80,0,0.6)',
   };
@@ -41,7 +43,6 @@ const LcdDisplay: React.FC<LcdDisplayProps> = ({ lines, debug = false }) => {
     letterSpacing: '0.5px',
     lineHeight: '1.15',
     userSelect: 'none',
-    paddingLeft: '3px',
   };
 
   return (
