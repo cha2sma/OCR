@@ -2,12 +2,16 @@ import type { RelayState } from '../logic/relayState';
 
 export const DEFAULT_PASSWORD = '0000';
 
-export const DISPLAY_PAGES = ['STATUS', 'MEASURE', 'CONTACT_OUTPUT', 'SELF_DIAGNOSIS'] as const;
+export const relayInfo = {
+  type:    'GD31-AB17',
+  version: 'V2.01',
+  appName: 'OCR SIMULATOR',
+};
 
 export function createDefaultRelayState(): RelayState {
   return {
     mode: 'NORMAL',
-    displayPage: 'STATUS',
+    displayNav: { menuPath: [], selectedIndex: 0, pageIndex: 0 },
     lcdLines: [
       '   GD31-AB17        ',
       '  OCR SIMULATOR     ',
@@ -23,27 +27,28 @@ export function createDefaultRelayState(): RelayState {
       ubocrPickup: 0.5,
     },
     leds: {
-      pwr:          true,
-      run:          true,
-      err:          false,
-      pickup5051n:  false,
-      pickup50b46:  false,
-      tripInstA:    false,
-      tripInstB:    false,
-      tripInstC:    false,
-      tripInstN:    false,
-      tripTimedA:   false,
-      tripTimedB:   false,
-      tripTimedC:   false,
-      tripTimedN:   false,
-      trip50b:      false,
-      ubocr:        false,
+      pwr:         true,
+      run:         true,
+      err:         false,
+      pickup5051n: false,
+      pickup50b46: false,
+      tripInstA:   false,
+      tripInstB:   false,
+      tripInstC:   false,
+      tripInstN:   false,
+      tripTimedA:  false,
+      tripTimedB:  false,
+      tripTimedC:  false,
+      tripTimedN:  false,
+      trip50b:     false,
+      ubocr:       false,
     },
     contacts: {
       ts1: false, ts2: false, ts3: false, ts4: false,
       ts5: false, ts6: false, ts7: false, ts8: false,
       ts9: false, ts10: false, ts11: false,
     },
+    waveformRecords: [],
     passwordInput: '0000',
     passwordCursor: 0,
     selectedMenuIndex: 0,
