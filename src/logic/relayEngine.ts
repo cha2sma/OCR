@@ -1,29 +1,20 @@
 import type {
-  RelayState,
-  RelayButton,
-  RelayCurrents,
-  RelaySettings,
-  SettingMenuId,
-  WaveformRecord,
+  RelayState, RelayButton, RelayCurrents, RelaySettings, WaveformRecord,
 } from './relayState';
-import { createDefaultRelayState, DEFAULT_PASSWORD, relayInfo } from '../data/relayDefaults';
-import { SETTING_MENU, DISPLAY_MENU } from '../data/menuTree';
+import { createDefaultRelayState, relayInfo } from '../data/relayDefaults';
+import { DISPLAY_MENU } from '../data/menuTree';
 import type { DisplayMenuNode } from '../data/menuTree';
+import { generateSettingLcdLines, handleSettingButton } from './settingEngine';
 
 export function createInitialRelayState(): RelayState {
   return createDefaultRelayState();
 }
 
 function addLog(state: RelayState, message: string): RelayState {
-  return {
-    ...state,
-    eventLog: [message, ...state.eventLog].slice(0, 100),
-  };
+  return { ...state, eventLog: [message, ...state.eventLog].slice(0, 100) };
 }
 
-function pad20(s: string): string {
-  return s.padEnd(20).slice(0, 20);
-}
+function pad20(s: string): string { return s.padEnd(20).slice(0, 20); }
 
 // ─── Display menu helpers ─────────────────────────────────────────────────────
 
@@ -38,17 +29,15 @@ function getDisplayNode(menuPath: string[]): DisplayMenuNode | null {
   return found;
 }
 
-/** Render a scrollable 3-row menu list (line 1 = header). */
-function menuLines(header: string, items: DisplayMenuNode[], selectedIndex: number): string[] {
+function menuLines(header: string, items: DisplayMenuNode[], sel: number): string[] {
   const count = items.length;
-  const start = count <= 3 ? 0 : Math.max(0, Math.min(selectedIndex - 1, count - 3));
-  const visible = items.slice(start, start + 3);
+  const start = count <= 3 ? 0 : Math.max(0, Math.min(sel - 1, count - 3));
+  const vis = items.slice(start, start + 3);
   const lines: string[] = [pad20(header)];
   for (let i = 0; i < 3; i++) {
-    const item = visible[i];
-    if (!item) { lines.push(pad20('')); continue; }
-    const prefix = (start + i) === selectedIndex ? '>' : ' ';
-    lines.push(pad20(`${prefix} ${item.label}`));
+    const it = vis[i];
+    if (!it) { lines.push(pad20('')); continue; }
+    lines.push(pad20(`${(start + i) === sel ? '>' : ' '} ${it.label}`));
   }
   return lines;
 }
@@ -65,16 +54,10 @@ function getMaxPage(leafId: string, state: RelayState): number {
   }
 }
 
-// ─── Leaf LCD generators ──────────────────────────────────────────────────────
+// ─── Display leaf generators ──────────────────────────────────────────────────
 
-function generateContactInputLines(_state: RelayState): string[] {
-  // Contact inputs not simulated in MVP — always show OFF
-  return [
-    pad20('STATUS'),
-    pad20('CONTACT INPUT'),
-    pad20('IN1:OFF IN2:OFF'),
-    pad20('IN3:OFF'),
-  ];
+function generateContactInputLines(_s: RelayState): string[] {
+  return [pad20('STATUS'), pad20('CONTACT INPUT'), pad20('IN1:OFF IN2:OFF'), pad20('IN3:OFF')];
 }
 
 function generateContactOutputLines(state: RelayState, page: number): string[] {
@@ -92,15 +75,10 @@ function generateContactOutputLines(state: RelayState, page: number): string[] {
   ];
 }
 
-const DIAG_ITEMS: string[] = [
-  'DC POWER ', 'MEMORY   ', 'SETTING  ',
-  'AI CIRC  ', 'DI/O CIRC', 'AUTO CAL ',
-  'CPU WDOG ',
-];
+const DIAG_ITEMS = ['DC POWER ','MEMORY   ','SETTING  ','AI CIRC  ','DI/O CIRC','AUTO CAL ','CPU WDOG '];
 
-function generateSelfDiagLines(_state: RelayState, page: number): string[] {
-  const p = Math.min(page, 2);
-  const start = p * 3;
+function generateSelfDiagLines(_s: RelayState, page: number): string[] {
+  const start = Math.min(page, 2) * 3;
   const lines: string[] = [pad20('SELF DIAGNOSIS')];
   for (let i = 0; i < 3; i++) {
     const item = DIAG_ITEMS[start + i];
@@ -110,11 +88,8 @@ function generateSelfDiagLines(_state: RelayState, page: number): string[] {
 }
 
 type ProtStatus = 'NORMAL' | 'PICKUP' | 'TRIP';
-
 function protStatus(trip: boolean, pickup: boolean): ProtStatus {
-  if (trip)   return 'TRIP';
-  if (pickup) return 'PICKUP';
-  return 'NORMAL';
+  return trip ? 'TRIP' : pickup ? 'PICKUP' : 'NORMAL';
 }
 
 function generateProtectionLines(state: RelayState, page: number): string[] {
@@ -125,99 +100,45 @@ function generateProtectionLines(state: RelayState, page: number): string[] {
   const tocgr = protStatus(leds.tripTimedN, false);
   const b50   = protStatus(leds.trip50b, false);
   const ubocr = protStatus(leds.ubocr, false);
-
-  if (page === 0) {
-    return [
-      pad20('PROTECTION STATUS'),
-      pad20(`IOCR : ${iocr}`),
-      pad20(`TOCR : ${tocr}`),
-      pad20(`IOCGR: ${iocgr}`),
-    ];
-  }
-  return [
-    pad20('PROTECTION STATUS'),
-    pad20(`TOCGR: ${tocgr}`),
-    pad20(`50B  : ${b50}`),
-    pad20(`UBOCR: ${ubocr}`),
-  ];
+  if (page === 0) return [pad20('PROTECTION STATUS'),pad20(`IOCR : ${iocr}`),pad20(`TOCR : ${tocr}`),pad20(`IOCGR: ${iocgr}`)];
+  return [pad20('PROTECTION STATUS'),pad20(`TOCGR: ${tocgr}`),pad20(`50B  : ${b50}`),pad20(`UBOCR: ${ubocr}`)];
 }
 
-function generateRs485Lines(_state: RelayState): string[] {
-  return [
-    pad20('RS-485 MONITOR'),
-    pad20('RXD : NORMAL'),
-    pad20('TXD : NORMAL'),
-    pad20('COM : STANDBY'),
-  ];
+function generateRs485Lines(_s: RelayState): string[] {
+  return [pad20('RS-485 MONITOR'),pad20('RXD : NORMAL'),pad20('TXD : NORMAL'),pad20('COM : STANDBY')];
 }
 
 function generatePhaseCurrentLines(state: RelayState, page: number): string[] {
   const { ia, ib, ic, in: inp } = state.currents;
-  if (page === 0) {
-    return [
-      pad20('PHASE CURRENT'),
-      pad20(`IA:${ia.toFixed(2)}A  0DEG`),
-      pad20(`IB:${ib.toFixed(2)}A -120D`),
-      pad20(`IC:${ic.toFixed(2)}A 120D`),
-    ];
-  }
-  return [
-    pad20('PHASE CURRENT'),
-    pad20(`IN:${inp.toFixed(2)}A`),
-    pad20('ANGLE:0DEG'),
-    pad20('PAGE 2/2'),
-  ];
+  if (page === 0) return [pad20('PHASE CURRENT'),pad20(`IA:${ia.toFixed(2)}A  0DEG`),pad20(`IB:${ib.toFixed(2)}A -120D`),pad20(`IC:${ic.toFixed(2)}A 120D`)];
+  return [pad20('PHASE CURRENT'),pad20(`IN:${inp.toFixed(2)}A`),pad20('ANGLE:0DEG'),pad20('PAGE 2/2')];
 }
 
 function generateSequenceCurrentLines(state: RelayState): string[] {
   const { ia, ib, ic, in: inp } = state.currents;
-  const i0 = inp;
-  const i1 = (ia + ib + ic) / 3;
-  const i2 = Math.max(ia, ib, ic) - Math.min(ia, ib, ic);
-  return [
-    pad20('SEQUENCE CURRENT'),
-    pad20(`I0:${i0.toFixed(2)}A  0DEG`),
-    pad20(`I1:${i1.toFixed(2)}A  0DEG`),
-    pad20(`I2:${i2.toFixed(2)}A  0DEG`),
-  ];
+  const i0 = inp, i1 = (ia+ib+ic)/3, i2 = Math.max(ia,ib,ic)-Math.min(ia,ib,ic);
+  return [pad20('SEQUENCE CURRENT'),pad20(`I0:${i0.toFixed(2)}A  0DEG`),pad20(`I1:${i1.toFixed(2)}A  0DEG`),pad20(`I2:${i2.toFixed(2)}A  0DEG`)];
 }
 
 function generateEventRecordLines(state: RelayState, page: number): string[] {
   const log = state.eventLog;
-  if (log.length === 0) {
-    return [
-      pad20('EVENT RECORD'),
-      pad20('NO EVENT'),
-      pad20(''),
-      pad20('MAX 1024 EVENT'),
-    ];
-  }
+  if (log.length === 0) return [pad20('EVENT RECORD'),pad20('NO EVENT'),pad20(''),pad20('MAX 1024 EVENT')];
   const start = page * 3;
   const lines: string[] = [pad20('EVENT RECORD')];
   for (let i = 0; i < 3; i++) {
     const entry = log[start + i];
-    if (!entry) { lines.push(pad20('')); continue; }
-    const num = String(start + i + 1).padStart(3, '0');
-    lines.push(pad20(`${num} ${entry}`));
+    lines.push(entry ? pad20(`${String(start+i+1).padStart(3,'0')} ${entry}`) : pad20(''));
   }
   return lines;
 }
 
 function generateWaveformRecordLines(state: RelayState, page: number): string[] {
   const recs = state.waveformRecords;
-  if (recs.length === 0) {
-    return [
-      pad20('WAVEFORM RECORD'),
-      pad20('NO WAVEFORM'),
-      pad20(''),
-      pad20('MAX 6 RECORD'),
-    ];
-  }
-  const p = Math.min(page, 1);
-  const start = p * 3;
+  if (recs.length === 0) return [pad20('WAVEFORM RECORD'),pad20('NO WAVEFORM'),pad20(''),pad20('MAX 6 RECORD')];
+  const start = Math.min(page, 1) * 3;
   const lines: string[] = [pad20('WAVEFORM RECORD')];
   for (let i = 0; i < 3; i++) {
-    const slot = start + i + 1; // WF01..WF06
+    const slot = start + i + 1;
     const rec = recs[start + i];
     lines.push(pad20(`WF${String(slot).padStart(2,'0')}:${rec ? rec.label : 'EMPTY'}`));
   }
@@ -225,30 +146,19 @@ function generateWaveformRecordLines(state: RelayState, page: number): string[] 
 }
 
 function generateSystemInfoLines(): string[] {
-  return [
-    pad20('SYSTEM INFO.'),
-    pad20(`TYPE:${relayInfo.type}`),
-    pad20(`VERSION: ${relayInfo.version}`),
-    pad20(relayInfo.appName),
-  ];
+  return [pad20('SYSTEM INFO.'),pad20(`TYPE:${relayInfo.type}`),pad20(`VERSION: ${relayInfo.version}`),pad20(relayInfo.appName)];
 }
 
 // ─── Display LCD dispatcher ───────────────────────────────────────────────────
 
 function generateDisplayLcdLines(state: RelayState): string[] {
   const { menuPath, selectedIndex, pageIndex } = state.displayNav;
-
-  if (menuPath.length === 0) {
-    return menuLines('DISPLAY MENU', DISPLAY_MENU, selectedIndex);
-  }
+  if (menuPath.length === 0) return menuLines('DISPLAY MENU', DISPLAY_MENU, selectedIndex);
 
   const node = getDisplayNode(menuPath);
-
   if (node?.children && node.children.length > 0) {
-    const header = node.id === 'status'  ? 'STATUS MENU'  :
-                   node.id === 'measure' ? 'MEASURE MENU' :
-                   `${node.label} MENU`;
-    return menuLines(header, node.children, selectedIndex);
+    const hdr = node.id === 'status' ? 'STATUS MENU' : node.id === 'measure' ? 'MEASURE MENU' : `${node.label} MENU`;
+    return menuLines(hdr, node.children, selectedIndex);
   }
 
   const leafId = menuPath[menuPath.length - 1];
@@ -270,141 +180,66 @@ function generateDisplayLcdLines(state: RelayState): string[] {
 // ─── Main LCD generator ───────────────────────────────────────────────────────
 
 export function generateLcdLines(state: RelayState): string[] {
-  const { mode, currents, settings, leds, contacts, passwordInput, passwordCursor,
-          selectedMenuIndex, selectedLeafIndex, editingLeaf, editingValue, activeMenuId } = state;
+  const { mode, currents, settings, leds, contacts, passwordInput, passwordCursor } = state;
 
   if (mode === 'NORMAL') {
-    return [
-      pad20('   GD31-AB17'),
-      pad20('  OCR SIMULATOR'),
-      pad20(' STATUS : NORMAL'),
-      pad20(' PRESS DIS/SET'),
-    ];
+    return [pad20('   GD31-AB17'),pad20('  OCR SIMULATOR'),pad20(' STATUS : NORMAL'),pad20(' PRESS DIS/SET')];
   }
-
   if (mode === 'PASSWORD') {
     const display = passwordInput.split('').map((d, i) => (i === passwordCursor ? `[${d}]` : ` ${d} `)).join('');
     const cursor = '     '.slice(0, 6 + passwordCursor * 3) + '^';
-    return [
-      pad20('PASSWORD'),
-      pad20(`INPUT :${display}`),
-      pad20(cursor),
-      pad20('ENT TO CONFIRM'),
-    ];
+    return [pad20('PASSWORD'),pad20(`INPUT :${display}`),pad20(cursor),pad20('ENT TO CONFIRM')];
   }
+  if (mode === 'SETTING')      return generateSettingLcdLines(state);
+  if (mode === 'DISPLAY')      return generateDisplayLcdLines(state);
+  if (mode === 'CONTACT_TEST') return [pad20('CONTACT TEST'),pad20('NOT IMPLEMENTED'),pad20(''),pad20('LEFT: BACK')];
 
-  if (mode === 'SETTING') {
-    if (activeMenuId === null) {
-      const lines: string[] = [pad20('SETTING MENU')];
-      SETTING_MENU.forEach((item, i) => {
-        const prefix = i === selectedMenuIndex ? '>' : ' ';
-        lines.push(pad20(`${prefix} ${item.label}`));
-      });
-      while (lines.length < 4) lines.push(pad20(''));
-      return lines.slice(0, 4);
-    }
-
-    const menu = SETTING_MENU.find(m => m.id === activeMenuId);
-    if (!menu || !menu.children || menu.children.length === 0) {
-      return [
-        pad20(`${menu?.label ?? activeMenuId}`),
-        pad20(' (NO ITEMS)'),
-        pad20(''),
-        pad20('LEFT: BACK'),
-      ];
-    }
-
-    if (editingLeaf) {
-      const leaf = menu.children[selectedLeafIndex];
-      return [
-        pad20(leaf.label),
-        pad20(`VALUE: ${editingValue.toFixed(2)}${leaf.unit}`),
-        pad20('UP/DOWN: CHANGE'),
-        pad20('ENT:SAVE LEFT:CANCEL'),
-      ];
-    }
-
-    const lines: string[] = [pad20(menu.label)];
-    menu.children.forEach((leaf, i) => {
-      const prefix = i === selectedLeafIndex ? '>' : ' ';
-      const val = (settings[leaf.key] as number).toFixed(2);
-      lines.push(pad20(`${prefix}${leaf.label}:${val}${leaf.unit}`));
-    });
-    while (lines.length < 4) lines.push(pad20(''));
-    return lines.slice(0, 4);
-  }
-
-  if (mode === 'DISPLAY') {
-    return generateDisplayLcdLines(state);
-  }
-
-  if (mode === 'CONTACT_TEST') {
-    return [
-      pad20('CONTACT TEST'),
-      pad20('NOT IMPLEMENTED'),
-      pad20(''),
-      pad20('LEFT: BACK'),
-    ];
-  }
-
-  // Suppress unused-variable warnings for destructured fields not used in other branches
-  void currents; void leds; void contacts;
+  void currents; void settings; void leds; void contacts;
   return [pad20(''), pad20(''), pad20(''), pad20('')];
 }
 
 // ─── Protection evaluation ────────────────────────────────────────────────────
 
 export function evaluateProtection(state: RelayState): RelayState {
-  const { currents, settings } = state;
+  const { currents } = state;
   const { ia, ib, ic } = currents;
+  const ps = state.protectionSettings;
 
-  const phasePickup = ia >= settings.iocrPickup || ib >= settings.iocrPickup || ic >= settings.iocrPickup;
-  const nPickup = currents.in >= settings.iocgrPickup;
+  const phasePickup = ia >= ps.iocr.pickup || ib >= ps.iocr.pickup || ic >= ps.iocr.pickup;
+  const nPickup     = currents.in >= ps.iocgr.pickup;
+  const max = Math.max(ia, ib, ic), min = Math.min(ia, ib, ic);
+  const ubocrActive = max - min >= ps.ubocr.pickup;
 
-  const vals = [ia, ib, ic];
-  const max = Math.max(...vals);
-  const min = Math.min(...vals);
-  const ubocrActive = max - min >= settings.ubocrPickup;
-
-  const newLeds = {
-    ...state.leds,
-    pickup5051n: phasePickup || nPickup,
-    pickup50b46: false,
-    ubocr: ubocrActive,
-  };
-
-  let newState = { ...state, leds: newLeds };
-  newState = { ...newState, lcdLines: generateLcdLines(newState) };
-  return newState;
+  const newLeds = { ...state.leds, pickup5051n: phasePickup || nPickup, pickup50b46: false, ubocr: ubocrActive };
+  const next = { ...state, leds: newLeds };
+  return { ...next, lcdLines: generateLcdLines(next) };
 }
 
 // ─── Fault simulation ─────────────────────────────────────────────────────────
 
 export function simulateFault(state: RelayState): RelayState {
-  const { currents, settings } = state;
+  const { currents } = state;
   const { ia, ib, ic } = currents;
   const inp = currents.in;
+  const ps  = state.protectionSettings;
 
-  const tripA = ia >= settings.iocrPickup;
-  const tripB = ib >= settings.iocrPickup;
-  const tripC = ic >= settings.iocrPickup;
-  const tripN = inp >= settings.iocgrPickup;
+  const tripA = ia >= ps.iocr.pickup;
+  const tripB = ib >= ps.iocr.pickup;
+  const tripC = ic >= ps.iocr.pickup;
+  const tripN = inp >= ps.iocgr.pickup;
   const ts5   = state.leds.trip50b || state.leds.ubocr;
 
   const logs: string[] = [];
-  if (tripA || tripB || tripC) {
-    logs.push('Phase overcurrent detected');
-    if (tripA) logs.push('A phase INST trip');
-    if (tripB) logs.push('B phase INST trip');
-    if (tripC) logs.push('C phase INST trip');
-  }
+  if (tripA || tripB || tripC) { logs.push('Phase overcurrent detected'); }
+  if (tripA) logs.push('A phase INST trip');
+  if (tripB) logs.push('B phase INST trip');
+  if (tripC) logs.push('C phase INST trip');
   if (tripN) logs.push('N phase INST trip');
   if (!tripA && !tripB && !tripC && !tripN) logs.push('Simulate fault executed (no pickup)');
 
   const newLeds = { ...state.leds, tripInstA: tripA, tripInstB: tripB, tripInstC: tripC, tripInstN: tripN };
   const newContacts = { ...state.contacts, ts1: tripA, ts2: tripB, ts3: tripC, ts4: tripN, ts5 };
 
-  // Record waveform (max 6, newest first)
   const wfLabel = tripA ? 'FAULT A' : tripB ? 'FAULT B' : tripC ? 'FAULT C' :
                   tripN ? 'FAULT N' : state.leds.ubocr ? 'UBOCR' : 'FAULT';
   const newWf: WaveformRecord = {
@@ -417,8 +252,7 @@ export function simulateFault(state: RelayState): RelayState {
   let next: RelayState = { ...state, leds: newLeds, contacts: newContacts, waveformRecords: newWaveformRecords };
   next = evaluateProtection(next);
   for (const log of logs) next = addLog(next, log);
-  next = { ...next, lcdLines: generateLcdLines(next) };
-  return next;
+  return { ...next, lcdLines: generateLcdLines(next) };
 }
 
 // ─── Clear fault ──────────────────────────────────────────────────────────────
@@ -431,48 +265,50 @@ export function clearFault(state: RelayState): RelayState {
     tripTimedA: false, tripTimedB: false, tripTimedC: false, tripTimedN: false,
     trip50b: false, ubocr: false,
   };
-  const clearedContacts = {
-    ...state.contacts,
-    ts1: false, ts2: false, ts3: false, ts4: false, ts5: false,
-  };
+  const clearedContacts = { ...state.contacts, ts1:false,ts2:false,ts3:false,ts4:false,ts5:false };
   let next: RelayState = { ...state, leds: clearedLeds, contacts: clearedContacts };
   next = addLog(next, 'Clear fault executed');
-  next = { ...next, lcdLines: generateLcdLines(next) };
-  return next;
+  return { ...next, lcdLines: generateLcdLines(next) };
 }
 
-// ─── Settings update ──────────────────────────────────────────────────────────
+// ─── Settings & currents update (from ControlPanel) ───────────────────────────
 
 export function updateCurrents(state: RelayState, currents: RelayCurrents): RelayState {
   let next = { ...state, currents };
   next = evaluateProtection(next);
-  next = { ...next, lcdLines: generateLcdLines(next) };
-  return next;
+  return { ...next, lcdLines: generateLcdLines(next) };
 }
 
 export function updateSettings(state: RelayState, settings: RelaySettings): RelayState {
-  let next = { ...state, settings };
+  // Sync flat settings -> protectionSettings pickup values
+  const ps = state.protectionSettings;
+  const newPs = {
+    ...ps,
+    iocr:  { ...ps.iocr,  pickup: settings.iocrPickup  },
+    tocr:  { ...ps.tocr,  pickup: settings.tocrPickup  },
+    iocgr: { ...ps.iocgr, pickup: settings.iocgrPickup },
+    tocgr: { ...ps.tocgr, pickup: settings.tocgrPickup },
+    ubocr: { ...ps.ubocr, pickup: settings.ubocrPickup },
+  };
+  let next = { ...state, settings, protectionSettings: newPs };
   next = evaluateProtection(next);
-  next = { ...next, lcdLines: generateLcdLines(next) };
-  return next;
+  return { ...next, lcdLines: generateLcdLines(next) };
 }
 
-// ─── Password input handler ───────────────────────────────────────────────────
+// ─── Password handler ─────────────────────────────────────────────────────────
 
 function handlePasswordInput(state: RelayState, button: RelayButton): RelayState {
   const digits = state.passwordInput.split('');
   const cursor = state.passwordCursor;
 
   if (button === 'UP') {
-    const d = (parseInt(digits[cursor]) + 1) % 10;
-    digits[cursor] = String(d);
-    let next = { ...state, passwordInput: digits.join('') };
+    const d = (parseInt(digits[cursor]) + 1) % 10; digits[cursor] = String(d);
+    const next = { ...state, passwordInput: digits.join('') };
     return { ...next, lcdLines: generateLcdLines(next) };
   }
   if (button === 'DOWN') {
-    const d = (parseInt(digits[cursor]) + 9) % 10;
-    digits[cursor] = String(d);
-    let next = { ...state, passwordInput: digits.join('') };
+    const d = (parseInt(digits[cursor]) + 9) % 10; digits[cursor] = String(d);
+    const next = { ...state, passwordInput: digits.join('') };
     return { ...next, lcdLines: generateLcdLines(next) };
   }
   if (button === 'RIGHT') {
@@ -484,121 +320,17 @@ function handlePasswordInput(state: RelayState, button: RelayButton): RelayState
     return { ...next, lcdLines: generateLcdLines(next) };
   }
   if (button === 'ENT') {
-    if (state.passwordInput === DEFAULT_PASSWORD) {
+    if (state.passwordInput === state.systemSettings.password) {
       let next: RelayState = {
-        ...state,
-        mode: 'SETTING',
-        activeMenuId: null,
-        selectedMenuIndex: 0,
-        selectedLeafIndex: 0,
-        editingLeaf: false,
-        passwordInput: '0000',
-        passwordCursor: 0,
+        ...state, mode: 'SETTING', passwordInput: '0000', passwordCursor: 0,
+        settingNav: { menuPath: [], selectedIndex: 0, pageIndex: 0, editMode: false, editValue: 0 },
       };
       next = addLog(next, 'Password accepted');
       return { ...next, lcdLines: generateLcdLines(next) };
     } else {
-      let next: RelayState = {
-        ...state,
-        lcdLines: [
-          pad20('PASSWORD ERROR'),
-          pad20('WRONG PASSWORD'),
-          pad20('TRY AGAIN'),
-          pad20('ENT TO CONFIRM'),
-        ],
-      };
+      const next: RelayState = { ...state, lcdLines: [pad20('PASSWORD ERROR'),pad20('WRONG PASSWORD'),pad20('TRY AGAIN'),pad20('ENT TO CONFIRM')] };
       return addLog(next, 'Password error');
     }
-  }
-  return state;
-}
-
-// ─── Setting menu handler ─────────────────────────────────────────────────────
-
-function handleSettingInput(state: RelayState, button: RelayButton): RelayState {
-  const { activeMenuId, selectedMenuIndex, selectedLeafIndex, editingLeaf, editingValue } = state;
-
-  if (activeMenuId === null) {
-    if (button === 'UP') {
-      const idx = Math.max(selectedMenuIndex - 1, 0);
-      const next = { ...state, selectedMenuIndex: idx };
-      return { ...next, lcdLines: generateLcdLines(next) };
-    }
-    if (button === 'DOWN') {
-      const idx = Math.min(selectedMenuIndex + 1, SETTING_MENU.length - 1);
-      const next = { ...state, selectedMenuIndex: idx };
-      return { ...next, lcdLines: generateLcdLines(next) };
-    }
-    if (button === 'ENT' || button === 'RIGHT') {
-      const menu = SETTING_MENU[selectedMenuIndex];
-      if (menu.id === 'CONTACT_TEST') {
-        const next: RelayState = { ...state, mode: 'CONTACT_TEST', activeMenuId: menu.id };
-        return { ...next, lcdLines: generateLcdLines(next) };
-      }
-      const next: RelayState = { ...state, activeMenuId: menu.id as SettingMenuId, selectedLeafIndex: 0, editingLeaf: false };
-      return { ...next, lcdLines: generateLcdLines(next) };
-    }
-    if (button === 'LEFT') {
-      let next: RelayState = { ...state, mode: 'NORMAL', activeMenuId: null };
-      next = addLog(next, 'Exited SETTING menu');
-      return { ...next, lcdLines: generateLcdLines(next) };
-    }
-    return state;
-  }
-
-  const menu = SETTING_MENU.find(m => m.id === activeMenuId);
-  if (!menu || !menu.children || menu.children.length === 0) {
-    if (button === 'LEFT') {
-      const next: RelayState = { ...state, activeMenuId: null };
-      return { ...next, lcdLines: generateLcdLines(next) };
-    }
-    return state;
-  }
-
-  if (editingLeaf) {
-    const leaf = menu.children[selectedLeafIndex];
-    if (button === 'UP') {
-      const val = Math.min(+(editingValue + leaf.step).toFixed(3), leaf.max);
-      const next = { ...state, editingValue: val };
-      return { ...next, lcdLines: generateLcdLines(next) };
-    }
-    if (button === 'DOWN') {
-      const val = Math.max(+(editingValue - leaf.step).toFixed(3), leaf.min);
-      const next = { ...state, editingValue: val };
-      return { ...next, lcdLines: generateLcdLines(next) };
-    }
-    if (button === 'ENT') {
-      const newSettings = { ...state.settings, [leaf.key]: editingValue };
-      let next: RelayState = { ...state, settings: newSettings, editingLeaf: false };
-      next = addLog(next, `${leaf.label} set to ${editingValue.toFixed(2)}${leaf.unit}`);
-      next = evaluateProtection(next);
-      return { ...next, lcdLines: generateLcdLines(next) };
-    }
-    if (button === 'LEFT') {
-      const next: RelayState = { ...state, editingLeaf: false };
-      return { ...next, lcdLines: generateLcdLines(next) };
-    }
-    return state;
-  }
-
-  if (button === 'UP') {
-    const idx = Math.max(selectedLeafIndex - 1, 0);
-    const next = { ...state, selectedLeafIndex: idx };
-    return { ...next, lcdLines: generateLcdLines(next) };
-  }
-  if (button === 'DOWN') {
-    const idx = Math.min(selectedLeafIndex + 1, menu.children.length - 1);
-    const next = { ...state, selectedLeafIndex: idx };
-    return { ...next, lcdLines: generateLcdLines(next) };
-  }
-  if (button === 'ENT' || button === 'RIGHT') {
-    const leaf = menu.children[selectedLeafIndex];
-    const next: RelayState = { ...state, editingLeaf: true, editingValue: state.settings[leaf.key] as number };
-    return { ...next, lcdLines: generateLcdLines(next) };
-  }
-  if (button === 'LEFT') {
-    const next: RelayState = { ...state, activeMenuId: null, selectedLeafIndex: 0, editingLeaf: false };
-    return { ...next, lcdLines: generateLcdLines(next) };
   }
   return state;
 }
@@ -611,52 +343,33 @@ function handleDisplayButton(state: RelayState, button: RelayButton): RelayState
   const isLeaf = menuPath.length > 0 && (!node?.children || node.children.length === 0);
   const currentChildren = menuPath.length === 0 ? DISPLAY_MENU : (node?.children ?? []);
 
+  function upd(s: RelayState) { return { ...s, lcdLines: generateLcdLines(s) }; }
+
   if (button === 'LEFT') {
     if (menuPath.length === 0) {
       let next: RelayState = { ...state, mode: 'NORMAL' };
       next = addLog(next, 'Back to home');
-      return { ...next, lcdLines: generateLcdLines(next) };
+      return upd(next);
     }
-    const newPath = menuPath.slice(0, -1);
-    const next: RelayState = { ...state, displayNav: { menuPath: newPath, selectedIndex: 0, pageIndex: 0 } };
-    return { ...next, lcdLines: generateLcdLines(next) };
+    return upd({ ...state, displayNav: { menuPath: menuPath.slice(0,-1), selectedIndex: 0, pageIndex: 0 } });
   }
 
   if (!isLeaf) {
-    // Menu selection
-    if (button === 'UP') {
-      const idx = Math.max(selectedIndex - 1, 0);
-      const next: RelayState = { ...state, displayNav: { ...state.displayNav, selectedIndex: idx } };
-      return { ...next, lcdLines: generateLcdLines(next) };
-    }
-    if (button === 'DOWN') {
-      const idx = Math.min(selectedIndex + 1, currentChildren.length - 1);
-      const next: RelayState = { ...state, displayNav: { ...state.displayNav, selectedIndex: idx } };
-      return { ...next, lcdLines: generateLcdLines(next) };
-    }
+    if (button === 'UP') return upd({ ...state, displayNav: { ...state.displayNav, selectedIndex: Math.max(selectedIndex-1,0) } });
+    if (button === 'DOWN') return upd({ ...state, displayNav: { ...state.displayNav, selectedIndex: Math.min(selectedIndex+1, currentChildren.length-1) } });
     if (button === 'ENT' || button === 'RIGHT') {
-      const selected = currentChildren[selectedIndex];
-      if (!selected) return state;
-      const newPath = [...menuPath, selected.id];
-      const next: RelayState = { ...state, displayNav: { menuPath: newPath, selectedIndex: 0, pageIndex: 0 } };
-      return { ...next, lcdLines: generateLcdLines(next) };
+      const sel = currentChildren[selectedIndex];
+      if (!sel) return state;
+      return upd({ ...state, displayNav: { menuPath: [...menuPath, sel.id], selectedIndex: 0, pageIndex: 0 } });
     }
   } else {
-    // Leaf view — UP/DOWN scrolls pages
     const leafId = menuPath[menuPath.length - 1];
-    if (button === 'UP') {
-      const idx = Math.max(pageIndex - 1, 0);
-      const next: RelayState = { ...state, displayNav: { ...state.displayNav, pageIndex: idx } };
-      return { ...next, lcdLines: generateLcdLines(next) };
-    }
+    if (button === 'UP') return upd({ ...state, displayNav: { ...state.displayNav, pageIndex: Math.max(pageIndex-1,0) } });
     if (button === 'DOWN') {
       const maxPage = getMaxPage(leafId, state);
-      const idx = Math.min(pageIndex + 1, maxPage);
-      const next: RelayState = { ...state, displayNav: { ...state.displayNav, pageIndex: idx } };
-      return { ...next, lcdLines: generateLcdLines(next) };
+      return upd({ ...state, displayNav: { ...state.displayNav, pageIndex: Math.min(pageIndex+1, maxPage) } });
     }
   }
-
   return state;
 }
 
@@ -668,11 +381,9 @@ export function handleRelayButton(state: RelayState, button: RelayButton): Relay
   if (button === 'DIS') {
     if (next.mode === 'DISPLAY') {
       if (next.displayNav.menuPath.length === 0) {
-        // At root: cycle to next main-menu item
         const idx = (next.displayNav.selectedIndex + 1) % DISPLAY_MENU.length;
         next = { ...next, displayNav: { menuPath: [], selectedIndex: idx, pageIndex: 0 } };
       } else {
-        // Deeper: jump back to root
         next = { ...next, displayNav: { menuPath: [], selectedIndex: 0, pageIndex: 0 } };
       }
     } else {
@@ -686,6 +397,10 @@ export function handleRelayButton(state: RelayState, button: RelayButton): Relay
       next = { ...next, mode: 'PASSWORD', passwordInput: '0000', passwordCursor: 0 };
       return { ...next, lcdLines: generateLcdLines(next) };
     }
+    if (next.mode === 'SETTING') {
+      // Delegate to settingEngine — it handles SET as "go to root"
+      return handleSettingButton(next, button, generateLcdLines);
+    }
   }
 
   if (button === 'RESET') {
@@ -693,41 +408,16 @@ export function handleRelayButton(state: RelayState, button: RelayButton): Relay
       next.leds.tripInstA || next.leds.tripInstB || next.leds.tripInstC || next.leds.tripInstN ||
       next.leds.tripTimedA || next.leds.tripTimedB || next.leds.tripTimedC || next.leds.tripTimedN ||
       next.leds.pickup5051n || next.leds.pickup50b46 || next.leds.ubocr;
-
-    if (hasLatch) {
-      next = clearFault(next);
-      next = addLog(next, 'Reset: latch cleared');
-    }
-    next = {
-      ...next,
-      mode: 'NORMAL',
-      activeMenuId: null,
-      editingLeaf: false,
-      passwordInput: '0000',
-      passwordCursor: 0,
-    };
+    if (hasLatch) { next = clearFault(next); next = addLog(next, 'Reset: latch cleared'); }
+    next = { ...next, mode: 'NORMAL', panelTestMode: false, passwordInput: '0000', passwordCursor: 0,
+             settingNav: { menuPath: [], selectedIndex: 0, pageIndex: 0, editMode: false, editValue: 0 } };
     next = addLog(next, 'Reset: returned to home');
     return { ...next, lcdLines: generateLcdLines(next) };
   }
 
-  if (next.mode === 'PASSWORD') {
-    return handlePasswordInput(next, button);
-  }
-
-  if (next.mode === 'SETTING' || next.mode === 'CONTACT_TEST') {
-    if (next.mode === 'CONTACT_TEST') {
-      if (button === 'LEFT') {
-        const out: RelayState = { ...next, mode: 'SETTING', activeMenuId: null };
-        return { ...out, lcdLines: generateLcdLines(out) };
-      }
-      return next;
-    }
-    return handleSettingInput(next, button);
-  }
-
-  if (next.mode === 'DISPLAY') {
-    return handleDisplayButton(next, button);
-  }
+  if (next.mode === 'PASSWORD') return handlePasswordInput(next, button);
+  if (next.mode === 'SETTING')  return handleSettingButton(next, button, generateLcdLines);
+  if (next.mode === 'DISPLAY')  return handleDisplayButton(next, button);
 
   return { ...next, lcdLines: generateLcdLines(next) };
 }

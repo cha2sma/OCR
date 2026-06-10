@@ -85,7 +85,7 @@ const RelayPanel: React.FC<RelayPanelProps> = ({ state, onButtonPress, lastPress
           >
             <LedIndicator
               name={name}
-              active={ledState[key] as boolean}
+              active={state.panelTestMode ? true : ledState[key] as boolean}
               color={color}
               debug={debugOverlay}
             />
