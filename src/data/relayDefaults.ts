@@ -82,6 +82,25 @@ export function createDefaultRelayState(): RelayState {
     },
     testContacts: { ...EMPTY_CONTACTS },
     panelTestMode: false,
+    settingDraft: {
+      systemSettings: {
+        freq: '60Hz', pCtRat: 600, gCtRat: 200,
+        rtc: '2026/06/11 00:00:00', waveformType: '150cycle',
+        tpos: 50, tsrc: 'TRIP', slvAddr: 1, bps: 9600,
+        protocol: 'ModBus', password: DEFAULT_PASSWORD,
+      },
+      tsSettings: makeTsSettings(),
+      protectionSettings: {
+        iocr:  { function: 'Enabled', mode: 'Inst', pickup: 5.0, dtTime: 0.04, block: 'No' },
+        tocr:  { function: 'Enabled', curve: 'NI',  pickup: 1.0, tDial: 1.00, dtTime: 0.04, block: 'No' },
+        iocgr: { function: 'Enabled', mode: 'Inst', pickup: 0.5, dtTime: 0.04, block: 'No' },
+        tocgr: { function: 'Enabled', curve: 'NI',  pickup: 0.5, tDial: 1.00, dtTime: 0.04, block: 'No' },
+        fiftyB:{ function: 'Enabled', mode: 'Inst', pickup: 5.0, dtTime: 0.04, block: 'No' },
+        ubocr: { function: 'Enabled', mode: '3I2',  pickup: 1.0, dtTime: 0.04, block: 'No' },
+      },
+    },
+    hasUnsavedSettingChanges: false,
+    saveConfirm: { active: false, choice: 'YES', pendingPath: [] },
     eventLog: ['System initialized'],
     debugOverlay: false,
   };

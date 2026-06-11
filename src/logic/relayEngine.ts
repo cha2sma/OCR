@@ -4,7 +4,7 @@ import type {
 import { createDefaultRelayState, relayInfo } from '../data/relayDefaults';
 import { DISPLAY_MENU } from '../data/menuTree';
 import type { DisplayMenuNode } from '../data/menuTree';
-import { generateSettingLcdLines, handleSettingButton } from './settingEngine';
+import { generateSettingLcdLines, handleSettingButton, discardDraft } from './settingEngine';
 
 export function createInitialRelayState(): RelayState {
   return createDefaultRelayState();
@@ -325,6 +325,7 @@ function handlePasswordInput(state: RelayState, button: RelayButton): RelayState
         ...state, mode: 'SETTING', passwordInput: '0000', passwordCursor: 0,
         settingNav: { menuPath: [], selectedIndex: 0, pageIndex: 0, editMode: false, editValue: 0 },
       };
+      next = discardDraft(next);
       next = addLog(next, 'Password accepted');
       return { ...next, lcdLines: generateLcdLines(next) };
     } else {
@@ -404,11 +405,16 @@ export function handleRelayButton(state: RelayState, button: RelayButton): Relay
   }
 
   if (button === 'RESET') {
+    const wasInSetting = next.mode === 'SETTING';
     const hasLatch =
       next.leds.tripInstA || next.leds.tripInstB || next.leds.tripInstC || next.leds.tripInstN ||
       next.leds.tripTimedA || next.leds.tripTimedB || next.leds.tripTimedC || next.leds.tripTimedN ||
       next.leds.pickup5051n || next.leds.pickup50b46 || next.leds.ubocr;
     if (hasLatch) { next = clearFault(next); next = addLog(next, 'Reset: latch cleared'); }
+    if (wasInSetting) {
+      next = discardDraft(next);
+      next = addLog(next, 'Setting canceled by reset');
+    }
     next = { ...next, mode: 'NORMAL', panelTestMode: false, passwordInput: '0000', passwordCursor: 0,
              settingNav: { menuPath: [], selectedIndex: 0, pageIndex: 0, editMode: false, editValue: 0 } };
     next = addLog(next, 'Reset: returned to home');

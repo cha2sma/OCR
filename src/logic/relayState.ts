@@ -102,6 +102,22 @@ export interface RelaySettingNavigation {
   editValue: number;
 }
 
+// ─── Draft / save-confirm ───────────────────────────────────────────────────
+
+export type ConfirmChoice = 'YES' | 'NO';
+
+export interface SettingDraft {
+  systemSettings:     SystemSettings;
+  tsSettings:         TsSetting[];
+  protectionSettings: ProtectionSettings;
+}
+
+export interface SaveConfirmState {
+  active:      boolean;
+  choice:      ConfirmChoice;
+  pendingPath: string[];
+}
+
 // ─── Root state ─────────────────────────────────────────────────────────────
 
 export interface RelayState {
@@ -119,8 +135,11 @@ export interface RelayState {
   systemSettings:     SystemSettings;
   tsSettings:         TsSetting[];
   protectionSettings: ProtectionSettings;
-  testContacts:       RelayContacts;
-  panelTestMode:      boolean;
-  eventLog:           string[];
-  debugOverlay:       boolean;
+  testContacts:             RelayContacts;
+  panelTestMode:            boolean;
+  settingDraft:             SettingDraft;
+  hasUnsavedSettingChanges: boolean;
+  saveConfirm:              SaveConfirmState;
+  eventLog:                 string[];
+  debugOverlay:             boolean;
 }
